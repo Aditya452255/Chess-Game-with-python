@@ -4,7 +4,13 @@ from flask import Flask, jsonify, request, send_from_directory, render_template
 
 # allow importing from project's src folder
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-SRC = os.path.join(ROOT, 'src')
+# Prefer a `src` folder located inside the `web` package (after moving files there).
+WEB_SRC = os.path.join(os.path.dirname(__file__), 'src')
+if os.path.exists(WEB_SRC):
+    SRC = WEB_SRC
+else:
+    SRC = os.path.join(ROOT, 'src')
+
 if SRC not in sys.path:
     sys.path.insert(0, SRC)
 

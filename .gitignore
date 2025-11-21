@@ -1,0 +1,3 @@
+src/__pycache__/
+assets/images/.DS_Store
+\n# Build artifacts\ndist/\nbuild/\n*.zip\n*.exe\n__pycache__/\n*.pyc\n

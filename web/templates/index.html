@@ -60,7 +60,7 @@
       if(!cell) return
       const img = document.createElement('img')
       img.draggable = true
-      img.src = `/assets/images/imgs-80px/${p.color}_${p.name}.png`
+      img.src = `/static/images/imgs-80px/${p.color}_${p.name}.png`
       img.dataset.row = p.row
       img.dataset.col = p.col
       img.addEventListener('dragstart', onDragStart)

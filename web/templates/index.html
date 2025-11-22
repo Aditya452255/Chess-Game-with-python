@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Chess Web</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #board { width: 640px; height: 640px; border: 1px solid #333; display: grid; grid-template-columns: repeat(8,1fr); grid-template-rows: repeat(8,1fr); }
+    .cell { width: 80px; height: 80px; box-sizing: border-box; position: relative; }
+    .cell img { width: 72px; height: 72px; user-drag: none; user-select: none; cursor: grab; }
+    .label { font-size: 12px; position: absolute; left: 4px; top: 4px; opacity: 0.7 }
+  </style>
+</head>
+<body>
+  <h1>Chess (Web)</h1>
+  <div>
+    <button id="reset">Reset</button>
+    <span id="turn"></span>
+  </div>
+  <div id="board"></div>
+
+  <script>
+  const boardEl = document.getElementById('board')
+  const turnEl = document.getElementById('turn')
+
+  function createBoardGrid(){
+    boardEl.innerHTML = ''
+    for(let r=0;r<8;r++){
+      for(let c=0;c<8;c++){
+        const cell = document.createElement('div')
+        cell.className = 'cell'
+        cell.dataset.row = r
+        cell.dataset.col = c
+        const colorEven = (r + c) % 2 === 0
+        cell.style.background = colorEven ? '#eee' : '#7aa'
+        cell.addEventListener('dragover', e=>e.preventDefault())
+        cell.addEventListener('drop', onDrop)
+        boardEl.appendChild(cell)
+      }
+    }
+  }
+
+  async function loadState(){
+    const res = await fetch('/api/state')
+    const json = await res.json()
+    render(json.board)
+    turnEl.textContent = 'Turn: ' + json.next_player
+  }
+
+  function clearCells(){
+    const cells = document.querySelectorAll('.cell')
+    cells.forEach(c=>{ c.innerHTML = '' })
+  }
+
+  function render(board){
+    clearCells()
+    board.pieces.forEach(p=>{
+      const selector = `.cell[data-row="${p.row}"][data-col="${p.col}"]`
+      const cell = document.querySelector(selector)
+      if(!cell) return
+      const img = document.createElement('img')
+      img.draggable = true
+      img.src = `/static/images/imgs-80px/${p.color}_${p.name}.png`
+      img.dataset.row = p.row
+      img.dataset.col = p.col
+      img.addEventListener('dragstart', onDragStart)
+      cell.appendChild(img)
+    })
+  }
+
+  function onDragStart(e){
+    const img = e.target
+    e.dataTransfer.setData('text/plain', JSON.stringify({row: img.dataset.row, col: img.dataset.col}))
+  }
+
+  async function onDrop(e){
+    e.preventDefault()
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'))
+    const target = e.currentTarget
+    const fr = parseInt(target.dataset.row)
+    const fc = parseInt(target.dataset.col)
+    const body = {
+      initial_row: parseInt(data.row),
+      initial_col: parseInt(data.col),
+      final_row: fr,
+      final_col: fc
+    }
+    const res = await fetch('/api/move', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})
+    const json = await res.json()
+    if(!json.ok){ alert('Move failed: ' + (json.error||'unknown')) }
+    await loadState()
+  }
+
+  document.getElementById('reset').addEventListener('click', async ()=>{
+    await fetch('/api/reset', {method:'POST'})
+    await loadState()
+  })
+
+  createBoardGrid()
+  loadState()
+  </script>
+</body>
+</html>

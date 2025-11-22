@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: Chess-Python-Web
+    env: python
+    plan: free
+    region: oregon
+    branch: main
+    rootDirectory: "."
+    buildCommand: pip install -r web/requirements.txt
+    startCommand: gunicorn web.app:app --bind 0.0.0.0:$PORT
+    autoDeploy: true
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    healthCheckPath: /

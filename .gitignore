@@ -1,0 +1,18 @@
+src/__pycache__/
+assets/images/.DS_Store
+
+# Build artifacts
+dist/
+build/
+*.zip
+*.exe
+__pycache__/
+*.pyc
+temp_deploy_repo/
+capture_and_run.ps1
+
+# Python virtualenv
+venv/
+
+# OS files
+.DS_Store

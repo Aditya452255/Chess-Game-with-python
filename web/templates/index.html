@@ -271,7 +271,6 @@
           <div class="label" style="margin-bottom:8px">Options</div>
 
           <div class="options">
-            <label class="row"><input type="checkbox" id="neonGlow" checked> Neon glow</label>
             <label class="row"><input type="checkbox" id="showCoords" checked> Show coordinates</label>
           </div>
 
@@ -401,7 +400,8 @@ function renderPieces() {
     const colorMap = { w: 'white', b: 'black' };
     const longName = nameMap[p.name] || p.name;
     const colorLong = colorMap[p.color] || p.color;
-    const localPath = `/assets/images/imgs-80px/${colorLong}_${longName}.png`;
+    // Use images shipped inside `web/static/images` so Flask serves them at /static/...
+    const localPath = `/static/images/imgs-80px/${colorLong}_${longName}.png`;
     img.src = localPath;
     img.draggable = true;
 
@@ -498,8 +498,21 @@ document.getElementById("newGame").addEventListener("click", async () => {
   await loadState();
 });
 
-document.getElementById("undo").addEventListener("click", () => {
-  alert("Undo not implemented in demo.");
+document.getElementById("undo").addEventListener("click", async () => {
+  try {
+    const res = await fetch('/api/undo', { method: 'POST' });
+    const json = await res.json();
+    if (!json.ok) {
+      alert('Undo failed: ' + (json.error || 'none'));
+      return;
+    }
+    pieces = json.board.pieces;
+    turnText.textContent = json.next_player[0].toUpperCase() + json.next_player.slice(1);
+    renderPieces();
+  } catch (e) {
+    console.error('Undo error', e);
+    alert('Server error during undo');
+  }
 });
 
 document.getElementById("boardSize").addEventListener("change", e => {

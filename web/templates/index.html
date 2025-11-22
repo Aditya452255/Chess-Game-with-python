@@ -398,8 +398,10 @@ function renderPieces() {
     const img = document.createElement("img");
     // Map short names to asset filenames and use local assets
     const nameMap = { p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king' };
+    const colorMap = { w: 'white', b: 'black' };
     const longName = nameMap[p.name] || p.name;
-    const localPath = `/assets/images/imgs-80px/${p.color}_${longName}.png`;
+    const colorLong = colorMap[p.color] || p.color;
+    const localPath = `/assets/images/imgs-80px/${colorLong}_${longName}.png`;
     img.src = localPath;
     img.draggable = true;
 

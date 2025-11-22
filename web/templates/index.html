@@ -4,15 +4,47 @@
   <meta charset="utf-8">
   <title>Chess Web</title>
   <style>
-    body { font-family: Arial, sans-serif; }
-    #board { width: 640px; height: 640px; border: 1px solid #333; display: grid; grid-template-columns: repeat(8,1fr); grid-template-rows: repeat(8,1fr); }
+    /* Page layout */
+    html, body { height: 100%; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f1113;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e6e6e6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Container for header, controls and board */
+    .page-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px; }
+
+    h1 { margin: 0; font-size: 20px; color: #ffffff; }
+
+    .controls { display: flex; gap: 8px; align-items: center; justify-content: center; }
+
+    /* Board styling */
+    #board {
+      width: 640px;
+      height: 640px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      display: grid;
+      grid-template-columns: repeat(8,1fr);
+      grid-template-rows: repeat(8,1fr);
+      background: transparent;
+    }
+
     .cell { width: 80px; height: 80px; box-sizing: border-box; position: relative; }
     .cell img { width: 72px; height: 72px; user-drag: none; user-select: none; cursor: grab; }
     .label { font-size: 12px; position: absolute; left: 4px; top: 4px; opacity: 0.7 }
   </style>
 </head>
 <body>
-  <h1>Chess (Web)</h1>
+  <h1>Chess</h1>
   <div>
     <button id="reset">Reset</button>
     <span id="turn"></span>

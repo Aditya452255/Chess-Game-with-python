@@ -5,9 +5,9 @@ services:
     plan: free
     region: oregon
     branch: main
-    rootDirectory: "."
-    buildCommand: pip install -r web/requirements.txt
-    startCommand: gunicorn web.app:app --bind 0.0.0.0:$PORT
+    rootDirectory: "web"
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1
     autoDeploy: true
     envVars:
       - key: PYTHONUNBUFFERED

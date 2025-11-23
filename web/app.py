@@ -1,6 +1,5 @@
 import os
 import sys
-import copy
 from flask import Flask, jsonify, request, send_from_directory, render_template
 
 # Locate game logic (prefer web/src, fallback to project src)
@@ -17,6 +16,7 @@ if SRC not in sys.path:
 from src.board import Board
 from src.move import Move
 from src.square import Square
+import copy
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
@@ -53,6 +53,36 @@ def index():
     return render_template('index.html')
 
 
+# Explicit static route to ensure `/static/...` is served from the `web/static` folder
+@app.route('/static-files/<path:filename>')
+def static_files(filename):
+    # Serve files from `web/static` under a custom path `/static-files/...`
+    web_static = os.path.abspath(os.path.join(os.path.dirname(__file__), 'static'))
+    return send_from_directory(web_static, filename)
+
+
+@app.route('/__diag/static_check')
+def diag_static_check():
+    """Diagnostic: return info about the PNG we expect to serve."""
+    web_static = os.path.abspath(os.path.join(os.path.dirname(__file__), 'static'))
+    imgs_dir = os.path.join(web_static, 'images', 'imgs-80px')
+    target = os.path.join(imgs_dir, 'white_pawn.png')
+    info = {
+        'web_static': web_static,
+        'imgs_dir': imgs_dir,
+        'target_path': target,
+        'exists': os.path.exists(target),
+    }
+    try:
+        if info['exists']:
+            info['size_bytes'] = os.path.getsize(target)
+        info['listing'] = sorted(os.listdir(imgs_dir))
+    except Exception as e:
+        info['listing_error'] = str(e)
+
+    return jsonify(info)
+
+
 @app.route('/static/images/<path:filename>')
 def static_images(filename):
     # Serve images from the project's `assets/images` so we don't need to duplicate large files.
@@ -86,6 +116,13 @@ def api_move():
 
     board = GAME['board']
 
+    # Save a deep copy of the board and current player so we can undo
+    try:
+        GAME['history'].append((copy.deepcopy(board), GAME['next_player']))
+    except Exception:
+        # If deepcopy fails for some reason, clear history to avoid inconsistent state
+        GAME['history'] = []
+
     if not Square.in_range(ir, ic, fr, fc):
         return jsonify({'ok': False, 'error': 'out of range'})
 
@@ -108,13 +145,6 @@ def api_move():
         return jsonify({'ok': False, 'error': 'invalid move'})
 
     # perform move
-    # push snapshot for undo
-    try:
-        GAME['history'].append(copy.deepcopy(board))
-    except Exception:
-        # fallback: clear history if deepcopy fails
-        GAME['history'] = []
-
     board.move(piece, move, testing=False)
     board.set_true_en_passant(piece)
 
@@ -126,14 +156,13 @@ def api_move():
 
 @app.route('/api/undo', methods=['POST'])
 def api_undo():
-    # restore last board snapshot
+    """Undo last move by restoring previous board snapshot from history."""
     if not GAME.get('history'):
-        return jsonify({'ok': False, 'error': 'nothing to undo'})
+        return jsonify({'ok': False, 'error': 'no history'})
 
-    last_board = GAME['history'].pop()
-    GAME['board'] = last_board
-    # toggle back the player since a move was undone
-    GAME['next_player'] = 'white' if GAME['next_player'] == 'black' else 'black'
+    prev_board, prev_player = GAME['history'].pop()
+    GAME['board'] = prev_board
+    GAME['next_player'] = prev_player
 
     return jsonify({'ok': True, 'board': serialize_board(GAME['board']), 'next_player': GAME['next_player']})
 

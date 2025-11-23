@@ -7,7 +7,7 @@ services:
     branch: main
     rootDirectory: "."
     buildCommand: pip install -r web/requirements.txt
-    startCommand: gunicorn web.app:app --bind 0.0.0.0:$PORT --workers 1
+    startCommand: gunicorn web.app:app --bind 0.0.0.0:$PORT
     autoDeploy: true
     envVars:
       - key: PYTHONUNBUFFERED

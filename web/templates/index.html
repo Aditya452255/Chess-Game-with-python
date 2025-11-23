@@ -271,6 +271,7 @@
           <div class="label" style="margin-bottom:8px">Options</div>
 
           <div class="options">
+            <label class="row"><input type="checkbox" id="neonGlow" checked> Neon glow</label>
             <label class="row"><input type="checkbox" id="showCoords" checked> Show coordinates</label>
           </div>
 
@@ -377,7 +378,7 @@ function pieceNameToFile(color, name) {
   // map short codes to asset filenames
   const cmap = { w: 'white', b: 'black' };
   const nmap = { r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king', p: 'pawn' };
-  return `/assets/images/imgs-80px/${cmap[color]}_${nmap[name]}.png`;
+  return `/static-files/images/imgs-80px/${cmap[color]}_${nmap[name]}.png`;
 }
 
 /* ======================================================
@@ -400,8 +401,8 @@ function renderPieces() {
     const colorMap = { w: 'white', b: 'black' };
     const longName = nameMap[p.name] || p.name;
     const colorLong = colorMap[p.color] || p.color;
-    // Use images shipped inside `web/static/images` so Flask serves them at /static/...
-    const localPath = `/static/images/imgs-80px/${colorLong}_${longName}.png`;
+    // Use images served from our custom static-files route
+    const localPath = `/static-files/images/imgs-80px/${colorLong}_${longName}.png`;
     img.src = localPath;
     img.draggable = true;
 
@@ -503,14 +504,14 @@ document.getElementById("undo").addEventListener("click", async () => {
     const res = await fetch('/api/undo', { method: 'POST' });
     const json = await res.json();
     if (!json.ok) {
-      alert('Undo failed: ' + (json.error || 'none'));
+      alert('Undo failed: ' + (json.error || 'no history'));
       return;
     }
     pieces = json.board.pieces;
     turnText.textContent = json.next_player[0].toUpperCase() + json.next_player.slice(1);
     renderPieces();
-  } catch (e) {
-    console.error('Undo error', e);
+  } catch (err) {
+    console.error(err);
     alert('Server error during undo');
   }
 });
